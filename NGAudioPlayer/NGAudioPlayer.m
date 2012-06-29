@@ -350,10 +350,12 @@ static char currentItemContext;
     AVPlayerItem *oldItem = (AVPlayerItem *)[change valueForKey:NSKeyValueChangeOldKey];
     AVPlayerItem *newItem = (AVPlayerItem *)[change valueForKey:NSKeyValueChangeNewKey];
     
+    if (oldItem != nil) {
+        [[NSNotificationCenter defaultCenter] removeObserver:self 
+                                                        name:AVPlayerItemDidPlayToEndTimeNotification 
+                                                      object:oldItem];
+    }
     
-    [[NSNotificationCenter defaultCenter] removeObserver:self 
-                                                    name:AVPlayerItemDidPlayToEndTimeNotification 
-                                                  object:oldItem];
     [[NSNotificationCenter defaultCenter] addObserver:self 
                                              selector:@selector(playerItemDidPlayToEndTime:)
                                                  name:AVPlayerItemDidPlayToEndTimeNotification
