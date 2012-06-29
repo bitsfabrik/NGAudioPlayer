@@ -25,6 +25,7 @@ static char currentItemContext;
         unsigned int didStartPlaybackOfURL:1;
         unsigned int didFinishPlaybackOfURL:1;
         unsigned int didChangePlaybackState:1;
+        unsigned int didFail:1;
 	} _delegateFlags;
 }
 
@@ -161,6 +162,7 @@ static char currentItemContext;
         _delegateFlags.didStartPlaybackOfURL = [delegate respondsToSelector:@selector(audioPlayer:didStartPlaybackOfURL:)];
         _delegateFlags.didFinishPlaybackOfURL = [delegate respondsToSelector:@selector(audioPlayer:didFinishPlaybackOfURL:)];
         _delegateFlags.didChangePlaybackState = [delegate respondsToSelector:@selector(audioPlayerDidChangePlaybackState:)];
+        _delegateFlags.didFail = [delegate respondsToSelector:@selector(audioPlayer:didFailForURL:)];
     }
 }
 
@@ -343,7 +345,11 @@ static char currentItemContext;
 - (void)handleStatusChange:(NSDictionary *)change {
     AVPlayerStatus newStatus = (AVPlayerStatus)[[change valueForKey:NSKeyValueChangeNewKey] intValue];
     
-    // TODO: tell delegate that something happened
+    if (newStatus == AVPlayerStatusFailed) {
+        if (_delegateFlags.didFail) {
+            [self.delegate audioPlayer:self didFailForURL:self.currentPlayingURL];
+        }
+    }
 }
 
 - (void)handleCurrentItemChange:(NSDictionary *)change {
@@ -354,11 +360,20 @@ static char currentItemContext;
         [[NSNotificationCenter defaultCenter] removeObserver:self 
                                                         name:AVPlayerItemDidPlayToEndTimeNotification 
                                                       object:oldItem];
+        
+        [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                        name:AVPlayerItemFailedToPlayToEndTimeNotification
+                                                      object:oldItem];
     }
     
     [[NSNotificationCenter defaultCenter] addObserver:self 
                                              selector:@selector(playerItemDidPlayToEndTime:)
                                                  name:AVPlayerItemDidPlayToEndTimeNotification
+                                               object:newItem];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(playerItemDidFailToPlayToEnd:)
+                                                 name:AVPlayerItemFailedToPlayToEndTimeNotification
                                                object:newItem];
     
     
@@ -380,6 +395,16 @@ static char currentItemContext;
         
         if (url != nil) {
             [self.delegate audioPlayer:self didFinishPlaybackOfURL:url];
+        }
+    }
+}
+
+- (void)playerItemDidFailPlayToEndTime:(NSNotification *)notification {
+    if (_delegateFlags.didFail) {
+        NSURL *url = [self URLOfItem:notification.object];
+        
+        if (url != nil) {
+            [self.delegate audioPlayer:self didFailForURL:url];
         }
     }
 }
