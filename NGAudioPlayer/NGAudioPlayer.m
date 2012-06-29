@@ -23,6 +23,7 @@ static char currentItemContext;
     // flags for methods implemented in the delegate
     struct {
         unsigned int didStartPlaybackOfURL:1;
+        unsigned int didFinishPlaybackOfURL:1;
         unsigned int didChangePlaybackState:1;
 	} _delegateFlags;
 }
@@ -37,6 +38,7 @@ static char currentItemContext;
 - (void)handleRateChange:(NSDictionary *)change;
 - (void)handleStatusChange:(NSDictionary *)change;
 - (void)handleCurrentItemChange:(NSDictionary *)change;
+- (void)playerItemDidPlayToEndTime:(NSNotification *)notification;
 
 @end
 
@@ -157,6 +159,7 @@ static char currentItemContext;
         _delegate = delegate;
         
         _delegateFlags.didStartPlaybackOfURL = [delegate respondsToSelector:@selector(audioPlayer:didStartPlaybackOfURL:)];
+        _delegateFlags.didFinishPlaybackOfURL = [delegate respondsToSelector:@selector(audioPlayer:didFinishPlaybackOfURL:)];
         _delegateFlags.didChangePlaybackState = [delegate respondsToSelector:@selector(audioPlayerDidChangePlaybackState:)];
     }
 }
@@ -344,7 +347,19 @@ static char currentItemContext;
 }
 
 - (void)handleCurrentItemChange:(NSDictionary *)change {
+    AVPlayerItem *oldItem = (AVPlayerItem *)[change valueForKey:NSKeyValueChangeOldKey];
     AVPlayerItem *newItem = (AVPlayerItem *)[change valueForKey:NSKeyValueChangeNewKey];
+    
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:self 
+                                                    name:AVPlayerItemDidPlayToEndTimeNotification 
+                                                  object:oldItem];
+    [[NSNotificationCenter defaultCenter] addObserver:self 
+                                             selector:@selector(playerItemDidPlayToEndTime:)
+                                                 name:AVPlayerItemDidPlayToEndTimeNotification
+                                               object:newItem];
+    
+    
     NSURL *url = [self URLOfItem:newItem];
     NSDictionary *nowPlayingInfo = url.ng_nowPlayingInfo;
     
@@ -354,6 +369,16 @@ static char currentItemContext;
     
     if (self.automaticallyUpdateNowPlayingInfoCenter && NSClassFromString(@"MPNowPlayingInfoCenter") != nil) {
         [MPNowPlayingInfoCenter defaultCenter].nowPlayingInfo = nowPlayingInfo;
+    }
+}
+
+- (void)playerItemDidPlayToEndTime:(NSNotification *)notification {
+    if (_delegateFlags.didFinishPlaybackOfURL) {
+        NSURL *url = [self URLOfItem:notification.object];
+        
+        if (url != nil) {
+            [self.delegate audioPlayer:self didFinishPlaybackOfURL:url];
+        }
     }
 }
 
