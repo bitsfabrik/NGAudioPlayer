@@ -10,17 +10,21 @@
 #import "NGWeak.h"
 #import "NGAudioPlayerPlaybackState.h"
 #import "NGAudioPlayerDelegate.h"
+#import "NSURL+NGAudioPlayerNowPlayingInfo.h"
 
 
 @interface NGAudioPlayer : NSObject
 
-@property (nonatomic, ng_weak) id<NGAudioPlayerDelegate> delegate;
+@property (nonatomic, assign) id<NGAudioPlayerDelegate> delegate;
 @property (nonatomic, readonly, getter = isPlaying) BOOL playing;
 @property (nonatomic, readonly) NGAudioPlayerPlaybackState playbackState;
 
 @property (nonatomic, readonly) NSURL *currentPlayingURL;
 @property (nonatomic, readonly) NSTimeInterval durationOfCurrentPlayingURL;
 @property (nonatomic, readonly) NSArray *enqueuedURLs;
+
+/** Automatically updates MPNowPlayingInfoCenter with the dictionary associated with a given NSURL, defaults to YES */
+@property (nonatomic, assign) BOOL automaticallyUpdateNowPlayingInfoCenter;
 
 
 /******************************************

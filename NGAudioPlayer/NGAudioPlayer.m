@@ -7,7 +7,6 @@
 //
 
 #import "NGAudioPlayer.h"
-#import "NGAudioPlayerDelegate.h"
 
 
 #define kNGAudioPlayerKeypathRate           NSStringFromSelector(@selector(rate))
@@ -46,6 +45,7 @@ static char currentItemContext;
 
 @synthesize delegate = _delegate;
 @synthesize player = _player;
+@synthesize automaticallyUpdateNowPlayingInfoCenter = _automaticallyUpdateNowPlayingInfoCenter;
 
 ////////////////////////////////////////////////////////////////////////
 #pragma mark - Lifecycle
@@ -80,6 +80,8 @@ static char currentItemContext;
         [_player addObserver:self forKeyPath:kNGAudioPlayerKeypathRate options:NSKeyValueObservingOptionNew context:&rateContext];
         [_player addObserver:self forKeyPath:kNGAudioPlayerKeypathStatus options:NSKeyValueObservingOptionNew context:&statusContext];
         [_player addObserver:self forKeyPath:kNGAudioPlayerKeypathCurrentItem options:NSKeyValueObservingOptionNew context:&currentItemContext];
+        
+        _automaticallyUpdateNowPlayingInfoCenter = YES;
     }
     
     return self;
@@ -344,9 +346,14 @@ static char currentItemContext;
 - (void)handleCurrentItemChange:(NSDictionary *)change {
     AVPlayerItem *newItem = (AVPlayerItem *)[change valueForKey:NSKeyValueChangeNewKey];
     NSURL *url = [self URLOfItem:newItem];
+    NSDictionary *nowPlayingInfo = url.ng_nowPlayingInfo;
     
     if (url != nil && self.playing && _delegateFlags.didStartPlaybackOfURL) {
         [self.delegate audioPlayer:self didStartPlaybackOfURL:url];
+    }
+    
+    if (self.automaticallyUpdateNowPlayingInfoCenter && NSClassFromString(@"MPNowPlayingInfoCenter") != nil) {
+        [MPNowPlayingInfoCenter defaultCenter].nowPlayingInfo = nowPlayingInfo;
     }
 }
 

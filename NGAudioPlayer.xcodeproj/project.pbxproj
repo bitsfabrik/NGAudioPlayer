@@ -13,6 +13,8 @@
 		9BDA4E57159320910079ABE5 /* NGAudioPlayerPlaybackState.m in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA4E56159320910079ABE5 /* NGAudioPlayerPlaybackState.m */; };
 		9BDA4E67159323660079ABE5 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BDA4E66159323660079ABE5 /* AVFoundation.framework */; };
 		9BDA4E69159323750079ABE5 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BDA4E68159323750079ABE5 /* CoreMedia.framework */; };
+		9BF38A44159DBBA0002B659F /* NSURL+NGAudioPlayerNowPlayingInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 9BF38A43159DBBA0002B659F /* NSURL+NGAudioPlayerNowPlayingInfo.m */; };
+		9BF38A46159DBD7F002B659F /* MediaPlayer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BF38A45159DBD7F002B659F /* MediaPlayer.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -40,6 +42,9 @@
 		9BDA4E651593210C0079ABE5 /* NGWeak.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NGWeak.h; sourceTree = "<group>"; };
 		9BDA4E66159323660079ABE5 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		9BDA4E68159323750079ABE5 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
+		9BF38A42159DBBA0002B659F /* NSURL+NGAudioPlayerNowPlayingInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSURL+NGAudioPlayerNowPlayingInfo.h"; sourceTree = "<group>"; };
+		9BF38A43159DBBA0002B659F /* NSURL+NGAudioPlayerNowPlayingInfo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSURL+NGAudioPlayerNowPlayingInfo.m"; sourceTree = "<group>"; };
+		9BF38A45159DBD7F002B659F /* MediaPlayer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaPlayer.framework; path = System/Library/Frameworks/MediaPlayer.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -47,6 +52,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9BF38A46159DBD7F002B659F /* MediaPlayer.framework in Frameworks */,
 				9BDA4E69159323750079ABE5 /* CoreMedia.framework in Frameworks */,
 				9BDA4E67159323660079ABE5 /* AVFoundation.framework in Frameworks */,
 				9BDA4E2E159311810079ABE5 /* Foundation.framework in Frameworks */,
@@ -79,6 +85,7 @@
 				9BDA4E66159323660079ABE5 /* AVFoundation.framework */,
 				9BDA4E68159323750079ABE5 /* CoreMedia.framework */,
 				9BDA4E2D159311810079ABE5 /* Foundation.framework */,
+				9BF38A45159DBD7F002B659F /* MediaPlayer.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -91,6 +98,8 @@
 				9BDA4E5415931FC20079ABE5 /* NGAudioPlayerDelegate.h */,
 				9BDA4E55159320910079ABE5 /* NGAudioPlayerPlaybackState.h */,
 				9BDA4E56159320910079ABE5 /* NGAudioPlayerPlaybackState.m */,
+				9BF38A42159DBBA0002B659F /* NSURL+NGAudioPlayerNowPlayingInfo.h */,
+				9BF38A43159DBBA0002B659F /* NSURL+NGAudioPlayerNowPlayingInfo.m */,
 				9BDA4E30159311810079ABE5 /* Supporting Files */,
 			);
 			path = NGAudioPlayer;
@@ -158,6 +167,7 @@
 			files = (
 				9BDA4E35159311810079ABE5 /* NGAudioPlayer.m in Sources */,
 				9BDA4E57159320910079ABE5 /* NGAudioPlayerPlaybackState.m in Sources */,
+				9BF38A44159DBBA0002B659F /* NSURL+NGAudioPlayerNowPlayingInfo.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -183,7 +193,7 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
 				SDKROOT = iphoneos;
 			};
 			name = Debug;
@@ -200,7 +210,7 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -212,6 +222,7 @@
 				DSTROOT = /tmp/NGAudioPlayer.dst;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "NGAudioPlayer/NGAudioPlayer-Prefix.pch";
+				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -224,6 +235,7 @@
 				DSTROOT = /tmp/NGAudioPlayer.dst;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "NGAudioPlayer/NGAudioPlayer-Prefix.pch";
+				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -249,6 +261,7 @@
 				9BDA4E3A159311810079ABE5 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
