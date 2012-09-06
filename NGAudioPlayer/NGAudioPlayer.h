@@ -59,6 +59,8 @@
 - (void)stop;
 - (void)togglePlayback;
 
+- (void)fadePlayerFromVolume:(CGFloat)fromVolume toVolume:(CGFloat)toVolume duration:(NSTimeInterval)duration;
+
 /******************************************
  @name Queuing
  ******************************************/

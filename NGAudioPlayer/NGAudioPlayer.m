@@ -83,7 +83,7 @@ static char currentItemContext;
         [_player addObserver:self forKeyPath:kNGAudioPlayerKeypathRate options:NSKeyValueObservingOptionNew context:&rateContext];
         [_player addObserver:self forKeyPath:kNGAudioPlayerKeypathStatus options:NSKeyValueObservingOptionNew context:&statusContext];
         [_player addObserver:self forKeyPath:kNGAudioPlayerKeypathCurrentItem options:NSKeyValueObservingOptionNew context:&currentItemContext];
-        
+		
         _automaticallyUpdateNowPlayingInfoCenter = YES;
     }
     
@@ -357,8 +357,8 @@ static char currentItemContext;
     AVPlayerItem *newItem = (AVPlayerItem *)[change valueForKey:NSKeyValueChangeNewKey];
     
     if (oldItem != nil) {
-        [[NSNotificationCenter defaultCenter] removeObserver:self 
-                                                        name:AVPlayerItemDidPlayToEndTimeNotification 
+        [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                        name:AVPlayerItemDidPlayToEndTimeNotification
                                                       object:oldItem];
         
         [[NSNotificationCenter defaultCenter] removeObserver:self
@@ -366,7 +366,7 @@ static char currentItemContext;
                                                       object:oldItem];
     }
     
-    [[NSNotificationCenter defaultCenter] addObserver:self 
+    [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(playerItemDidPlayToEndTime:)
                                                  name:AVPlayerItemDidPlayToEndTimeNotification
                                                object:newItem];
@@ -379,7 +379,7 @@ static char currentItemContext;
     
     NSURL *url = [self URLOfItem:newItem];
     NSDictionary *nowPlayingInfo = url.ng_nowPlayingInfo;
-    
+	
     if (url != nil && self.playing && _delegateFlags.didStartPlaybackOfURL) {
         [self.delegate audioPlayer:self didStartPlaybackOfURL:url];
     }
@@ -407,6 +407,30 @@ static char currentItemContext;
             [self.delegate audioPlayer:self didFailForURL:url];
         }
     }
+}
+
+- (void)fadePlayerFromVolume:(CGFloat)fromVolume toVolume:(CGFloat)toVolume duration:(NSTimeInterval)duration {
+    CMTime startFadeOutTime = CMTimeMakeWithSeconds(0.0, 1);
+    CMTime endFadeOutTime = CMTimeMakeWithSeconds(duration, 1);
+    CMTimeRange fadeInTimeRange = CMTimeRangeFromTimeToTime(startFadeOutTime, endFadeOutTime);
+    
+    AVPlayerItem *playerItem = self.player.currentItem;
+    
+    AVAsset *asset = playerItem.asset;
+    NSArray *audioTracks = [asset tracksWithMediaType:AVMediaTypeAudio];
+    
+    NSMutableArray *allAudioParams = [NSMutableArray array];
+    for (AVAssetTrack *track in audioTracks) {
+        AVMutableAudioMixInputParameters *audioInputParams = [AVMutableAudioMixInputParameters audioMixInputParameters];
+        [audioInputParams setVolumeRampFromStartVolume:fromVolume toEndVolume:toVolume timeRange:fadeInTimeRange];
+        [audioInputParams setTrackID:[track trackID]];
+        [allAudioParams addObject:audioInputParams];
+    }
+    
+    AVMutableAudioMix *audioMix = [AVMutableAudioMix audioMix];
+    [audioMix setInputParameters:allAudioParams];
+    
+    [playerItem setAudioMix:audioMix];
 }
 
 @end
