@@ -137,8 +137,12 @@ static char currentItemStatusContext;
         // TODO : not sure if this is really the only condition for the buffering state
         AVPlayerItem *currentItem = self.player.currentItem;
         if (currentItem) {
-            if (currentItem.status == AVPlayerStatusUnknown) {
+            AVPlayerItemStatus status = currentItem.status;
+            if (status == AVPlayerStatusUnknown) {
                 return NGAudioPlayerPlaybackStateBuffering;
+            }
+            else if (status == AVPlayerStatusFailed) {
+                return NGAudioPlayerPlaybackStatePaused;
             }
         }
         return NGAudioPlayerPlaybackStatePlaying;
