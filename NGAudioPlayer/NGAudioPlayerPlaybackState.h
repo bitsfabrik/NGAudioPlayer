@@ -10,5 +10,6 @@
 
 typedef enum {
     NGAudioPlayerPlaybackStatePlaying,
-    NGAudioPlayerPlaybackStatePaused
+    NGAudioPlayerPlaybackStatePaused,
+    NGAudioPlayerPlaybackStateBuffering
 } NGAudioPlayerPlaybackState;

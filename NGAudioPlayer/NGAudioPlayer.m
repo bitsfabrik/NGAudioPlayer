@@ -12,11 +12,12 @@
 #define kNGAudioPlayerKeypathRate           NSStringFromSelector(@selector(rate))
 #define kNGAudioPlayerKeypathStatus         NSStringFromSelector(@selector(status))
 #define kNGAudioPlayerKeypathCurrentItem    NSStringFromSelector(@selector(currentItem))
-
+#define kNGAudioPlayerKeypathCurrentItemStatus NSStringFromSelector(@selector(status))
 
 static char rateContext;
 static char statusContext;
 static char currentItemContext;
+static char currentItemStatusContext;
 
 
 @interface NGAudioPlayer () {
@@ -115,6 +116,8 @@ static char currentItemContext;
         [self handleStatusChange:change];
     } else if (context == &currentItemContext && [keyPath isEqualToString:kNGAudioPlayerKeypathCurrentItem]) {
         [self handleCurrentItemChange:change];
+    } else if (context == &currentItemStatusContext && [keyPath isEqualToString:kNGAudioPlayerKeypathCurrentItemStatus]) {
+        [self handleCurrentItemStatusChange:change];
     } else {
         [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
     }
@@ -130,6 +133,14 @@ static char currentItemContext;
 
 - (NGAudioPlayerPlaybackState)playbackState {
     if (self.player && self.player.rate != 0.f) {
+        //if playeritem.status is unkown, it is buffering (at least not failed and not ready to play)
+        // TODO : not sure if this is really the only condition for the buffering state
+        AVPlayerItem *currentItem = self.player.currentItem;
+        if (currentItem) {
+            if (currentItem.status == AVPlayerStatusUnknown) {
+                return NGAudioPlayerPlaybackStateBuffering;
+            }
+        }
         return NGAudioPlayerPlaybackStatePlaying;
     }
     
@@ -357,6 +368,8 @@ static char currentItemContext;
     AVPlayerItem *newItem = (AVPlayerItem *)[change valueForKey:NSKeyValueChangeNewKey];
     
     if (oldItem != nil) {
+        [oldItem removeObserver:self forKeyPath:kNGAudioPlayerKeypathCurrentItemStatus];
+        
         [[NSNotificationCenter defaultCenter] removeObserver:self
                                                         name:AVPlayerItemDidPlayToEndTimeNotification
                                                       object:oldItem];
@@ -376,6 +389,7 @@ static char currentItemContext;
                                                  name:AVPlayerItemFailedToPlayToEndTimeNotification
                                                object:newItem];
     
+    [newItem addObserver:self forKeyPath:kNGAudioPlayerKeypathCurrentItemStatus options:NSKeyValueObservingOptionNew context:&currentItemStatusContext];
     
     NSURL *url = [self URLOfItem:newItem];
     NSDictionary *nowPlayingInfo = url.ng_nowPlayingInfo;
@@ -386,6 +400,25 @@ static char currentItemContext;
     
     if (self.automaticallyUpdateNowPlayingInfoCenter && NSClassFromString(@"MPNowPlayingInfoCenter") != nil) {
         [MPNowPlayingInfoCenter defaultCenter].nowPlayingInfo = nowPlayingInfo;
+    }
+}
+
+- (void)handleCurrentItemStatusChange:(NSDictionary *)change {
+//    AVPlayerItemStatus old = (AVPlayerItemStatus)[[change valueForKey:NSKeyValueChangeOldKey] intValue];
+    AVPlayerItemStatus new = (AVPlayerItemStatus)[[change valueForKey:NSKeyValueChangeNewKey] intValue];
+//    NSLog(@"oldStatus: %i, newStatus: %i", old, new);
+    
+    if (_delegateFlags.didChangePlaybackState) {
+        [self.delegate audioPlayerDidChangePlaybackState:self.playbackState];
+//        if (new == AVPlayerStatusUnknown) {
+//            [self.delegate audioPlayerDidChangePlaybackState:self.playbackState];
+//        }
+//        else if (new == AVPlayerStatusReadyToPlay) {
+//            [self.delegate audioPlayerDidChangePlaybackState:self.playbackState];
+//        }
+//        else {
+//            [self.delegate audioPlayerDidChangePlaybackState:self.playbackState];
+//        }
     }
 }
 
