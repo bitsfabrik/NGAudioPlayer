@@ -409,7 +409,7 @@ static char currentItemStatusContext;
 
 - (void)handleCurrentItemStatusChange:(NSDictionary *)change {
 //    AVPlayerItemStatus old = (AVPlayerItemStatus)[[change valueForKey:NSKeyValueChangeOldKey] intValue];
-    AVPlayerItemStatus new = (AVPlayerItemStatus)[[change valueForKey:NSKeyValueChangeNewKey] intValue];
+//    AVPlayerItemStatus new = (AVPlayerItemStatus)[[change valueForKey:NSKeyValueChangeNewKey] intValue];
 //    NSLog(@"oldStatus: %i, newStatus: %i", old, new);
     
     if (_delegateFlags.didChangePlaybackState) {
