@@ -7,7 +7,8 @@
 //
 
 #import "NGAudioPlayer.h"
-
+#import <AVFoundation/AVFoundation.h>
+#import <MediaPlayer/MediaPlayer.h>
 
 #define kNGAudioPlayerKeypathRate           NSStringFromSelector(@selector(rate))
 #define kNGAudioPlayerKeypathStatus         NSStringFromSelector(@selector(status))

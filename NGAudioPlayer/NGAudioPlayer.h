@@ -11,7 +11,7 @@
 #import "NGAudioPlayerPlaybackState.h"
 #import "NGAudioPlayerDelegate.h"
 #import "NSURL+NGAudioPlayerNowPlayingInfo.h"
-
+#import <CoreMedia/CoreMedia.h>
 
 @interface NGAudioPlayer : NSObject
 
