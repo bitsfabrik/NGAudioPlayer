@@ -119,7 +119,7 @@ static char currentItemStatusContext;
     
     if (_stopDate != nil) {
         void (^observerBlock)(CMTime time) = ^(CMTime time) {
-            if ([_stopDate compare:[NSDate date]] == NSOrderedAscending) {
+            if ([_stopDate compare:[NSDate date]] != NSOrderedDescending) {
                 [self stop];
                 [self removeStopDateObserver];
             }
