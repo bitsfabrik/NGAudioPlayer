@@ -33,6 +33,7 @@ static char currentItemStatusContext;
 
 @property (nonatomic, strong) AVQueuePlayer *player;
 @property (nonatomic, readonly) CMTime CMDurationOfCurrentItem;
+@property (nonatomic, readwrite) id timeObserver;
 
 - (NSURL *)URLOfItem:(AVPlayerItem *)item;
 - (CMTime)CMDurationOfItem:(AVPlayerItem *)item;
@@ -104,6 +105,37 @@ static char currentItemStatusContext;
     [_player removeObserver:self forKeyPath:kNGAudioPlayerKeypathRate];
     [_player removeObserver:self forKeyPath:kNGAudioPlayerKeypathStatus];
     [_player removeObserver:self forKeyPath:kNGAudioPlayerKeypathCurrentItem];
+}
+
+////////////////////////////////////////////////////////////////////////
+#pragma mark -
+#pragma mark - automatic stopping
+////////////////////////////////////////////////////////////////////////
+
+- (void)setStopDate:(NSDate *)stopDate {
+    _stopDate = stopDate;
+    
+    [self removeStopDateObserver];
+    
+    if (_stopDate != nil) {
+        void (^observerBlock)(CMTime time) = ^(CMTime time) {
+            if ([_stopDate compare:[NSDate date]] == NSOrderedAscending) {
+                [self stop];
+                [self removeStopDateObserver];
+            }
+        };
+        
+        self.timeObserver = [self.player addPeriodicTimeObserverForInterval:CMTimeMake(10, 100)
+                                                                      queue:dispatch_get_main_queue()
+                                                                 usingBlock:observerBlock];
+    }
+}
+
+- (void)removeStopDateObserver {
+    if (self.timeObserver != nil) {
+        [_player removeTimeObserver:self.timeObserver];
+        self.timeObserver = nil;
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////

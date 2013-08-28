@@ -26,6 +26,9 @@
 /** Automatically updates MPNowPlayingInfoCenter with the dictionary associated with a given NSURL, defaults to YES */
 @property (nonatomic, assign) BOOL automaticallyUpdateNowPlayingInfoCenter;
 
+/** if set, stops the player at this specific date (e.g. to use for a timer like in tvs etc.), also works if the app is in background */
+@property (nonatomic, strong) NSDate *stopDate;
+
 
 /******************************************
  @name Class Methods
