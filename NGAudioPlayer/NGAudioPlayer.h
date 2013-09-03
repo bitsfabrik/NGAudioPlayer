@@ -29,6 +29,8 @@
 /** if set, stops the player at this specific date (e.g. to use for a timer like in tvs etc.), also works if the app is in background */
 @property (nonatomic, strong) NSDate *stopDate;
 
+/** if YES, starts an observation block and calls delegates didChangeTime method */
+@property (nonatomic, readwrite) BOOL useDidChangeTimeObservation;
 
 /******************************************
  @name Class Methods
@@ -63,6 +65,8 @@
 - (void)togglePlayback;
 
 - (void)fadePlayerFromVolume:(CGFloat)fromVolume toVolume:(CGFloat)toVolume duration:(NSTimeInterval)duration;
+
+- (void)seekCurrentItemToPositionInPercent:(float)percentTime;
 
 /******************************************
  @name Queuing

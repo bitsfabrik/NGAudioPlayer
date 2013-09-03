@@ -28,11 +28,13 @@ static char currentItemStatusContext;
         unsigned int didFinishPlaybackOfURL:1;
         unsigned int didChangePlaybackState:1;
         unsigned int didFail:1;
+        unsigned int didChangeTime:1;
 	} _delegateFlags;
 }
 
 @property (nonatomic, strong) AVQueuePlayer *player;
 @property (nonatomic, readonly) CMTime CMDurationOfCurrentItem;
+@property (nonatomic, readwrite) id defaultTimeObserver;
 @property (nonatomic, readwrite) id timeObserver;
 
 - (NSURL *)URLOfItem:(AVPlayerItem *)item;
@@ -119,7 +121,9 @@ static char currentItemStatusContext;
     
     if (_stopDate != nil) {
         void (^observerBlock)(CMTime time) = ^(CMTime time) {
-            if ([_stopDate compare:[NSDate date]] != NSOrderedDescending) {
+            NSDate *now = [NSDate date];
+            NSComparisonResult order = [_stopDate compare:now];
+            if (order != NSOrderedDescending) {
                 [self stop];
                 [self removeStopDateObserver];
             }
@@ -135,6 +139,31 @@ static char currentItemStatusContext;
     if (self.timeObserver != nil) {
         [_player removeTimeObserver:self.timeObserver];
         self.timeObserver = nil;
+    }
+}
+
+////////////////////////////////////////////////////////////////////////
+#pragma mark -
+#pragma mark - time observation
+////////////////////////////////////////////////////////////////////////
+
+- (void)setUseDidChangeTimeObservation:(BOOL)useDidChangeTimeObservation {
+    _useDidChangeTimeObservation = useDidChangeTimeObservation;
+    
+    if (_useDidChangeTimeObservation) {
+        if (_delegate != nil) {
+            _delegateFlags.didChangeTime = [_delegate respondsToSelector:@selector(audioPlayer:didChangeTime:)];
+        }
+        
+        //time changes
+        void (^observerBlock)(CMTime time) = ^(CMTime time) {
+            if (_delegateFlags.didChangeTime) {
+                [_delegate audioPlayer:self didChangeTime:time.value/time.timescale];
+            }
+        };
+        self.defaultTimeObserver = [self.player addPeriodicTimeObserverForInterval:CMTimeMake(10, 100)
+                                                                             queue:dispatch_get_main_queue()
+                                                                        usingBlock:observerBlock];
     }
 }
 
@@ -175,8 +204,9 @@ static char currentItemStatusContext;
                 return NGAudioPlayerPlaybackStateBuffering;
             }
             else if (status == AVPlayerStatusFailed) {
-                return NGAudioPlayerPlaybackStatePaused;
+                return NGAudioPlayerPlaybackStateFailed;
             }
+            else return NGAudioPlayerPlaybackStatePlaying;
         }
         return NGAudioPlayerPlaybackStatePlaying;
     }
@@ -422,7 +452,7 @@ static char currentItemStatusContext;
                                                object:newItem];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(playerItemDidFailToPlayToEnd:)
+                                             selector:@selector(playerItemDidFailPlayToEndTime:)
                                                  name:AVPlayerItemFailedToPlayToEndTimeNotification
                                                object:newItem];
     
@@ -441,21 +471,21 @@ static char currentItemStatusContext;
 }
 
 - (void)handleCurrentItemStatusChange:(NSDictionary *)change {
-//    AVPlayerItemStatus old = (AVPlayerItemStatus)[[change valueForKey:NSKeyValueChangeOldKey] intValue];
-//    AVPlayerItemStatus new = (AVPlayerItemStatus)[[change valueForKey:NSKeyValueChangeNewKey] intValue];
-//    NSLog(@"oldStatus: %i, newStatus: %i", old, new);
+    //    AVPlayerItemStatus old = (AVPlayerItemStatus)[[change valueForKey:NSKeyValueChangeOldKey] intValue];
+    //    AVPlayerItemStatus new = (AVPlayerItemStatus)[[change valueForKey:NSKeyValueChangeNewKey] intValue];
+    //    NSLog(@"oldStatus: %i, newStatus: %i", old, new);
     
     if (_delegateFlags.didChangePlaybackState) {
         [self.delegate audioPlayerDidChangePlaybackState:self.playbackState];
-//        if (new == AVPlayerStatusUnknown) {
-//            [self.delegate audioPlayerDidChangePlaybackState:self.playbackState];
-//        }
-//        else if (new == AVPlayerStatusReadyToPlay) {
-//            [self.delegate audioPlayerDidChangePlaybackState:self.playbackState];
-//        }
-//        else {
-//            [self.delegate audioPlayerDidChangePlaybackState:self.playbackState];
-//        }
+        //        if (new == AVPlayerStatusUnknown) {
+        //            [self.delegate audioPlayerDidChangePlaybackState:self.playbackState];
+        //        }
+        //        else if (new == AVPlayerStatusReadyToPlay) {
+        //            [self.delegate audioPlayerDidChangePlaybackState:self.playbackState];
+        //        }
+        //        else {
+        //            [self.delegate audioPlayerDidChangePlaybackState:self.playbackState];
+        //        }
     }
 }
 
@@ -501,6 +531,18 @@ static char currentItemStatusContext;
     [audioMix setInputParameters:allAudioParams];
     
     [playerItem setAudioMix:audioMix];
+}
+
+- (void)seekCurrentItemToPositionInPercent:(float)percentTime {
+    AVPlayerItem *item = self.player.currentItem;
+    if (item != nil) {
+        Float64 seconds = (item.duration.value/item.duration.timescale) * percentTime;
+        CMTime targetTime = CMTimeMakeWithSeconds(seconds, NSEC_PER_SEC);
+        [self.player seekToTime:targetTime toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero];
+    }
+    else {
+        NSLog(@"item is nil");
+    }
 }
 
 @end
