@@ -536,7 +536,7 @@ static char currentItemStatusContext;
 - (void)seekCurrentItemToPositionInPercent:(float)percentTime {
     AVPlayerItem *item = self.player.currentItem;
     if (item != nil) {
-        Float64 seconds = (item.duration.value/item.duration.timescale) * percentTime;
+        Float64 seconds = (item.duration.timescale == 0 ? 0 : (item.duration.value/item.duration.timescale) * percentTime);
         CMTime targetTime = CMTimeMakeWithSeconds(seconds, NSEC_PER_SEC);
         [self.player seekToTime:targetTime toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero];
     }
