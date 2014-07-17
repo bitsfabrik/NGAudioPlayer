@@ -8,9 +8,9 @@
 
 #import <Foundation/Foundation.h>
 
-typedef enum {
-    NGAudioPlayerPlaybackStatePlaying,
+typedef NS_ENUM(NSUInteger, NGAudioPlayerPlaybackState) {
+    NGAudioPlayerPlaybackStatePlaying = 0,
     NGAudioPlayerPlaybackStatePaused,
     NGAudioPlayerPlaybackStateBuffering,
     NGAudioPlayerPlaybackStateFailed
-} NGAudioPlayerPlaybackState;
+};

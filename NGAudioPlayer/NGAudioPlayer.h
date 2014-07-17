@@ -7,7 +7,6 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "NGWeak.h"
 #import "NGAudioPlayerPlaybackState.h"
 #import "NGAudioPlayerDelegate.h"
 #import "NSURL+NGAudioPlayerNowPlayingInfo.h"

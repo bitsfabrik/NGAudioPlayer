@@ -51,10 +51,6 @@ static char currentItemStatusContext;
 
 @implementation NGAudioPlayer
 
-@synthesize delegate = _delegate;
-@synthesize player = _player;
-@synthesize automaticallyUpdateNowPlayingInfoCenter = _automaticallyUpdateNowPlayingInfoCenter;
-
 ////////////////////////////////////////////////////////////////////////
 #pragma mark - Lifecycle
 ////////////////////////////////////////////////////////////////////////
