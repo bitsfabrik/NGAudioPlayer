@@ -14,11 +14,13 @@
 #define kNGAudioPlayerKeypathStatus         NSStringFromSelector(@selector(status))
 #define kNGAudioPlayerKeypathCurrentItem    NSStringFromSelector(@selector(currentItem))
 #define kNGAudioPlayerKeypathCurrentItemStatus NSStringFromSelector(@selector(status))
+#define kNGAudioPlayerItemKeypathTimedMetadata NSStringFromSelector(@selector(timedMetadata))
 
 static char rateContext;
 static char statusContext;
 static char currentItemContext;
 static char currentItemStatusContext;
+static char playerItemTimedMetadataContext;
 
 
 @interface NGAudioPlayer () {
@@ -29,6 +31,7 @@ static char currentItemStatusContext;
         unsigned int didChangePlaybackState:1;
         unsigned int didFail:1;
         unsigned int didChangeTime:1;
+        unsigned int didChangeTimedMetadata:1;
 	} _delegateFlags;
 }
 
@@ -66,24 +69,14 @@ static char currentItemStatusContext;
 
 - (id)initWithURLs:(NSArray *)urls {
     if ((self = [super init])) {
-        if (urls.count > 0) {
-            NSMutableArray *items = [NSMutableArray arrayWithCapacity:urls.count];
-            
-            for (NSURL *url in urls) {
-                if ([url isKindOfClass:[NSURL class]]) {
-                    AVPlayerItem *item = [AVPlayerItem playerItemWithURL:url];
-                    [items addObject:item];
-                }
-            }
-            
-            _player = [AVQueuePlayer queuePlayerWithItems:items];
-        } else {
-            _player = [AVQueuePlayer queuePlayerWithItems:nil];
-        }
-        
+        _player = [AVQueuePlayer new];
         [_player addObserver:self forKeyPath:kNGAudioPlayerKeypathRate options:NSKeyValueObservingOptionNew context:&rateContext];
         [_player addObserver:self forKeyPath:kNGAudioPlayerKeypathStatus options:NSKeyValueObservingOptionNew context:&statusContext];
         [_player addObserver:self forKeyPath:kNGAudioPlayerKeypathCurrentItem options:NSKeyValueObservingOptionNew context:&currentItemContext];
+        
+        if (urls.count > 0) {
+            [self enqueueURLs:urls];
+        }
 		
         _automaticallyUpdateNowPlayingInfoCenter = YES;
     }
@@ -176,6 +169,8 @@ static char currentItemStatusContext;
         [self handleCurrentItemChange:change];
     } else if (context == &currentItemStatusContext && [keyPath isEqualToString:kNGAudioPlayerKeypathCurrentItemStatus]) {
         [self handleCurrentItemStatusChange:change];
+    } else if (context == &playerItemTimedMetadataContext && [keyPath isEqualToString:kNGAudioPlayerItemKeypathTimedMetadata]) {
+        [self handlePlayerItemTimedMetadataChange:change object:object];
     } else {
         [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
     }
@@ -237,6 +232,7 @@ static char currentItemStatusContext;
         _delegateFlags.didFinishPlaybackOfURL = [delegate respondsToSelector:@selector(audioPlayer:didFinishPlaybackOfURL:)];
         _delegateFlags.didChangePlaybackState = [delegate respondsToSelector:@selector(audioPlayerDidChangePlaybackState:)];
         _delegateFlags.didFail = [delegate respondsToSelector:@selector(audioPlayer:didFailForURL:)];
+        _delegateFlags.didChangeTimedMetadata = [delegate respondsToSelector:@selector(audioPlayer:didChangeTimedMetadata:)];
     }
 }
 
@@ -432,6 +428,7 @@ static char currentItemStatusContext;
     
     if (oldItem != nil) {
         [oldItem removeObserver:self forKeyPath:kNGAudioPlayerKeypathCurrentItemStatus];
+        [oldItem removeObserver:self forKeyPath:kNGAudioPlayerItemKeypathTimedMetadata];
         
         [[NSNotificationCenter defaultCenter] removeObserver:self
                                                         name:AVPlayerItemDidPlayToEndTimeNotification
@@ -453,6 +450,7 @@ static char currentItemStatusContext;
                                                object:newItem];
     
     [newItem addObserver:self forKeyPath:kNGAudioPlayerKeypathCurrentItemStatus options:NSKeyValueObservingOptionNew context:&currentItemStatusContext];
+    [newItem addObserver:self forKeyPath:kNGAudioPlayerItemKeypathTimedMetadata options:NSKeyValueObservingOptionNew context:&playerItemTimedMetadataContext];
     
     NSURL *url = [self URLOfItem:newItem];
     NSDictionary *nowPlayingInfo = url.ng_nowPlayingInfo;
@@ -482,6 +480,13 @@ static char currentItemStatusContext;
         //        else {
         //            [self.delegate audioPlayerDidChangePlaybackState:self.playbackState];
         //        }
+    }
+}
+
+- (void)handlePlayerItemTimedMetadataChange:(NSDictionary *)change object:(id)object {
+    if (_delegateFlags.didChangeTimedMetadata) {
+        AVPlayerItem *playerItem = object;
+        [self.delegate audioPlayer:self didChangeTimedMetadata:playerItem.timedMetadata];
     }
 }
 

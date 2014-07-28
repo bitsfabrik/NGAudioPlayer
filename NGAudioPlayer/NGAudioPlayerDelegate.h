@@ -21,6 +21,7 @@
 - (void)audioPlayer:(NGAudioPlayer *)audioPlayer didFinishPlaybackOfURL:(NSURL *)url;
 - (void)audioPlayer:(NGAudioPlayer *)audioPlayer didFailForURL:(NSURL *)url;
 - (void)audioPlayer:(NGAudioPlayer *)audioPlayer didChangeTime:(NSTimeInterval)currentTime;
+- (void)audioPlayer:(NGAudioPlayer *)audioPlayer didChangeTimedMetadata:(NSArray *)timedMetadata;
 
 - (void)audioPlayerDidChangePlaybackState:(NGAudioPlayerPlaybackState)playbackState;
 
