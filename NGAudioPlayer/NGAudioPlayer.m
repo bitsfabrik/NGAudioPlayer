@@ -267,6 +267,10 @@ static char playerItemTimedMetadataContext;
 
 - (void)playURL:(NSURL *)url {
     if (url != nil) {
+        if (self.currentItem != nil) {
+            [self.currentItem removeObserver:self forKeyPath:kNGAudioPlayerKeypathCurrentItemStatus];
+            [self.currentItem removeObserver:self forKeyPath:kNGAudioPlayerItemKeypathTimedMetadata];
+        }
         [self removeAllURLs];
         [self enqueueURL:url];
         [self play];
