@@ -11,6 +11,7 @@
 #import "NGAudioPlayerDelegate.h"
 #import "NSURL+NGAudioPlayerNowPlayingInfo.h"
 #import <CoreMedia/CoreMedia.h>
+#import <AVFoundation/AVFoundation.h>
 
 @interface NGAudioPlayer : NSObject
 
@@ -21,6 +22,8 @@
 @property (nonatomic, readonly) NSURL *currentPlayingURL;
 @property (nonatomic, readonly) NSTimeInterval durationOfCurrentPlayingURL;
 @property (nonatomic, readonly) NSArray *enqueuedURLs;
+
+@property (nonatomic, readonly) AVPlayerItem *currentItem;
 
 /** Automatically updates MPNowPlayingInfoCenter with the dictionary associated with a given NSURL, defaults to YES */
 @property (nonatomic, assign) BOOL automaticallyUpdateNowPlayingInfoCenter;

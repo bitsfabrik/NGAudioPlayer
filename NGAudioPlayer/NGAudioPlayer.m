@@ -7,7 +7,6 @@
 //
 
 #import "NGAudioPlayer.h"
-#import <AVFoundation/AVFoundation.h>
 #import <MediaPlayer/MediaPlayer.h>
 
 #define kNGAudioPlayerKeypathRate           NSStringFromSelector(@selector(rate))
@@ -149,6 +148,10 @@ static char playerItemTimedMetadataContext;
 
 - (NSURL *)currentPlayingURL {
     return [self URLOfItem:self.player.currentItem];
+}
+
+- (AVPlayerItem *)currentItem {
+    return self.player.currentItem;
 }
 
 - (NSTimeInterval)durationOfCurrentPlayingURL {
