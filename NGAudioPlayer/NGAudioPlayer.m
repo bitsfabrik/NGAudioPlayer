@@ -99,64 +99,6 @@ static char playerItemTimedMetadataContext;
 }
 
 ////////////////////////////////////////////////////////////////////////
-#pragma mark -
-#pragma mark - automatic stopping
-////////////////////////////////////////////////////////////////////////
-
-- (void)setStopDate:(NSDate *)stopDate {
-    _stopDate = stopDate;
-    
-    [self removeStopDateObserver];
-    
-    if (_stopDate != nil) {
-        void (^observerBlock)(CMTime time) = ^(CMTime time) {
-            NSDate *now = [NSDate date];
-            NSComparisonResult order = [_stopDate compare:now];
-            if (order != NSOrderedDescending) {
-                [self stop];
-                [self removeStopDateObserver];
-            }
-        };
-        
-        self.timeObserver = [self.player addPeriodicTimeObserverForInterval:CMTimeMake(10, 100)
-                                                                      queue:dispatch_get_main_queue()
-                                                                 usingBlock:observerBlock];
-    }
-}
-
-- (void)removeStopDateObserver {
-    if (self.timeObserver != nil) {
-        [_player removeTimeObserver:self.timeObserver];
-        self.timeObserver = nil;
-    }
-}
-
-////////////////////////////////////////////////////////////////////////
-#pragma mark -
-#pragma mark - time observation
-////////////////////////////////////////////////////////////////////////
-
-- (void)setUseDidChangeTimeObservation:(BOOL)useDidChangeTimeObservation {
-    _useDidChangeTimeObservation = useDidChangeTimeObservation;
-    
-    if (_useDidChangeTimeObservation) {
-        if (_delegate != nil) {
-            _delegateFlags.didChangeTime = [_delegate respondsToSelector:@selector(audioPlayer:didChangeTime:)];
-        }
-        
-        //time changes
-        void (^observerBlock)(CMTime time) = ^(CMTime time) {
-            if (_delegateFlags.didChangeTime) {
-                [_delegate audioPlayer:self didChangeTime:time.value/time.timescale];
-            }
-        };
-        self.defaultTimeObserver = [self.player addPeriodicTimeObserverForInterval:CMTimeMake(10, 100)
-                                                                             queue:dispatch_get_main_queue()
-                                                                        usingBlock:observerBlock];
-    }
-}
-
-////////////////////////////////////////////////////////////////////////
 #pragma mark - NSObject KVO
 ////////////////////////////////////////////////////////////////////////
 
@@ -233,6 +175,54 @@ static char playerItemTimedMetadataContext;
         _delegateFlags.didChangePlaybackState = [delegate respondsToSelector:@selector(audioPlayerDidChangePlaybackState:)];
         _delegateFlags.didFail = [delegate respondsToSelector:@selector(audioPlayer:didFailForURL:)];
         _delegateFlags.didChangeTimedMetadata = [delegate respondsToSelector:@selector(audioPlayer:didChangeTimedMetadata:)];
+    }
+}
+
+- (void)setUseDidChangeTimeObservation:(BOOL)useDidChangeTimeObservation {
+    _useDidChangeTimeObservation = useDidChangeTimeObservation;
+    
+    if (_useDidChangeTimeObservation) {
+        if (_delegate != nil) {
+            _delegateFlags.didChangeTime = [_delegate respondsToSelector:@selector(audioPlayer:didChangeTime:)];
+        }
+        
+        //time changes
+        void (^observerBlock)(CMTime time) = ^(CMTime time) {
+            if (_delegateFlags.didChangeTime) {
+                [_delegate audioPlayer:self didChangeTime:time.value/time.timescale];
+            }
+        };
+        self.defaultTimeObserver = [self.player addPeriodicTimeObserverForInterval:CMTimeMake(10, 100)
+                                                                             queue:dispatch_get_main_queue()
+                                                                        usingBlock:observerBlock];
+    }
+}
+
+- (void)setStopDate:(NSDate *)stopDate {
+    _stopDate = stopDate;
+    
+    [self removeStopDateObserver];
+    
+    if (_stopDate != nil) {
+        void (^observerBlock)(CMTime time) = ^(CMTime time) {
+            NSDate *now = [NSDate date];
+            NSComparisonResult order = [_stopDate compare:now];
+            if (order != NSOrderedDescending) {
+                [self stop];
+                [self removeStopDateObserver];
+            }
+        };
+        
+        self.timeObserver = [self.player addPeriodicTimeObserverForInterval:CMTimeMake(10, 100)
+                                                                      queue:dispatch_get_main_queue()
+                                                                 usingBlock:observerBlock];
+    }
+}
+
+- (void)removeStopDateObserver {
+    if (self.timeObserver != nil) {
+        [_player removeTimeObserver:self.timeObserver];
+        self.timeObserver = nil;
     }
 }
 
@@ -465,21 +455,8 @@ static char playerItemTimedMetadataContext;
 }
 
 - (void)handleCurrentItemStatusChange:(NSDictionary *)change {
-    //    AVPlayerItemStatus old = (AVPlayerItemStatus)[[change valueForKey:NSKeyValueChangeOldKey] intValue];
-    //    AVPlayerItemStatus new = (AVPlayerItemStatus)[[change valueForKey:NSKeyValueChangeNewKey] intValue];
-    //    NSLog(@"oldStatus: %i, newStatus: %i", old, new);
-    
     if (_delegateFlags.didChangePlaybackState) {
         [self.delegate audioPlayerDidChangePlaybackState:self.playbackState];
-        //        if (new == AVPlayerStatusUnknown) {
-        //            [self.delegate audioPlayerDidChangePlaybackState:self.playbackState];
-        //        }
-        //        else if (new == AVPlayerStatusReadyToPlay) {
-        //            [self.delegate audioPlayerDidChangePlaybackState:self.playbackState];
-        //        }
-        //        else {
-        //            [self.delegate audioPlayerDidChangePlaybackState:self.playbackState];
-        //        }
     }
 }
 
@@ -540,9 +517,6 @@ static char playerItemTimedMetadataContext;
         Float64 seconds = (item.duration.timescale == 0 ? 0 : (item.duration.value/item.duration.timescale) * percentTime);
         CMTime targetTime = CMTimeMakeWithSeconds(seconds, NSEC_PER_SEC);
         [self.player seekToTime:targetTime toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero];
-    }
-    else {
-        NSLog(@"item is nil");
     }
 }
 
