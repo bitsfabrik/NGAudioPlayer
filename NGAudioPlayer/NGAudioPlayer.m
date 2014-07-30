@@ -71,7 +71,7 @@ static char playerItemTimedMetadataContext;
         _player = [AVQueuePlayer new];
         [_player addObserver:self forKeyPath:kNGAudioPlayerKeypathRate options:NSKeyValueObservingOptionNew context:&rateContext];
         [_player addObserver:self forKeyPath:kNGAudioPlayerKeypathStatus options:NSKeyValueObservingOptionNew context:&statusContext];
-        [_player addObserver:self forKeyPath:kNGAudioPlayerKeypathCurrentItem options:NSKeyValueObservingOptionNew context:&currentItemContext];
+        [_player addObserver:self forKeyPath:kNGAudioPlayerKeypathCurrentItem options:NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld context:&currentItemContext];
         
         if (urls.count > 0) {
             [self enqueueURLs:urls];
@@ -267,10 +267,6 @@ static char playerItemTimedMetadataContext;
 
 - (void)playURL:(NSURL *)url {
     if (url != nil) {
-        if (self.currentItem != nil) {
-            [self.currentItem removeObserver:self forKeyPath:kNGAudioPlayerKeypathCurrentItemStatus];
-            [self.currentItem removeObserver:self forKeyPath:kNGAudioPlayerItemKeypathTimedMetadata];
-        }
         [self removeAllURLs];
         [self enqueueURL:url];
         [self play];
@@ -423,7 +419,7 @@ static char playerItemTimedMetadataContext;
     AVPlayerItem *oldItem = (AVPlayerItem *)[change valueForKey:NSKeyValueChangeOldKey];
     AVPlayerItem *newItem = (AVPlayerItem *)[change valueForKey:NSKeyValueChangeNewKey];
     
-    if (oldItem != nil) {
+    if (oldItem != nil && oldItem != (id)[NSNull null]) {
         [oldItem removeObserver:self forKeyPath:kNGAudioPlayerKeypathCurrentItemStatus];
         [oldItem removeObserver:self forKeyPath:kNGAudioPlayerItemKeypathTimedMetadata];
         
@@ -436,28 +432,30 @@ static char playerItemTimedMetadataContext;
                                                       object:oldItem];
     }
     
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(playerItemDidPlayToEndTime:)
-                                                 name:AVPlayerItemDidPlayToEndTimeNotification
-                                               object:newItem];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(playerItemDidFailPlayToEndTime:)
-                                                 name:AVPlayerItemFailedToPlayToEndTimeNotification
-                                               object:newItem];
-    
-    [newItem addObserver:self forKeyPath:kNGAudioPlayerKeypathCurrentItemStatus options:NSKeyValueObservingOptionNew context:&currentItemStatusContext];
-    [newItem addObserver:self forKeyPath:kNGAudioPlayerItemKeypathTimedMetadata options:NSKeyValueObservingOptionNew context:&playerItemTimedMetadataContext];
-    
-    NSURL *url = [self URLOfItem:newItem];
-    NSDictionary *nowPlayingInfo = url.ng_nowPlayingInfo;
-	
-    if (url != nil && self.playing && _delegateFlags.didStartPlaybackOfURL) {
-        [self.delegate audioPlayer:self didStartPlaybackOfURL:url];
-    }
-    
-    if (self.automaticallyUpdateNowPlayingInfoCenter && NSClassFromString(@"MPNowPlayingInfoCenter") != nil) {
-        [MPNowPlayingInfoCenter defaultCenter].nowPlayingInfo = nowPlayingInfo;
+    if (newItem != nil && newItem != (id)[NSNull null]) {
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(playerItemDidPlayToEndTime:)
+                                                     name:AVPlayerItemDidPlayToEndTimeNotification
+                                                   object:newItem];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(playerItemDidFailPlayToEndTime:)
+                                                     name:AVPlayerItemFailedToPlayToEndTimeNotification
+                                                   object:newItem];
+        
+        [newItem addObserver:self forKeyPath:kNGAudioPlayerKeypathCurrentItemStatus options:NSKeyValueObservingOptionNew context:&currentItemStatusContext];
+        [newItem addObserver:self forKeyPath:kNGAudioPlayerItemKeypathTimedMetadata options:NSKeyValueObservingOptionNew context:&playerItemTimedMetadataContext];
+        
+        NSURL *url = [self URLOfItem:newItem];
+        NSDictionary *nowPlayingInfo = url.ng_nowPlayingInfo;
+        
+        if (url != nil && self.playing && _delegateFlags.didStartPlaybackOfURL) {
+            [self.delegate audioPlayer:self didStartPlaybackOfURL:url];
+        }
+        
+        if (self.automaticallyUpdateNowPlayingInfoCenter && NSClassFromString(@"MPNowPlayingInfoCenter") != nil) {
+            [MPNowPlayingInfoCenter defaultCenter].nowPlayingInfo = nowPlayingInfo;
+        }
     }
 }
 
