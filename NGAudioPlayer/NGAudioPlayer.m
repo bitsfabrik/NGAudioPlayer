@@ -140,7 +140,7 @@ static char playerItemTimedMetadataContext;
             }
             else return NGAudioPlayerPlaybackStatePlaying;
         }
-        return NGAudioPlayerPlaybackStatePlaying;
+        return NGAudioPlayerPlaybackStatePaused;
     }
     
     return NGAudioPlayerPlaybackStatePaused;
