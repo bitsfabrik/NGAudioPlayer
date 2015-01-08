@@ -95,6 +95,8 @@ static char playerItemTimedMetadataContext;
     [_player removeObserver:self forKeyPath:kNGAudioPlayerKeypathRate];
     [_player removeObserver:self forKeyPath:kNGAudioPlayerKeypathStatus];
     [_player removeObserver:self forKeyPath:kNGAudioPlayerKeypathCurrentItem];
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:AVAudioSessionInterruptionNotification object:nil];
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -274,10 +276,14 @@ static char playerItemTimedMetadataContext;
 }
 
 - (void)play {
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:AVAudioSessionInterruptionNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleInterruption:) name:AVAudioSessionInterruptionNotification object:nil];
+    
     [self.player play];
 }
 
 - (void)pause {
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:AVAudioSessionInterruptionNotification object:nil];
     [self.player pause];
 }
 
@@ -472,7 +478,16 @@ static char playerItemTimedMetadataContext;
     }
 }
 
+- (void)handleInterruption:(NSNotification *)notification {
+    if ([[notification.userInfo objectForKey:AVAudioSessionInterruptionTypeKey] unsignedIntegerValue] == AVAudioSessionInterruptionTypeEnded) {
+        if ([[notification.userInfo objectForKey:AVAudioSessionInterruptionOptionKey] unsignedIntegerValue] == AVAudioSessionInterruptionOptionShouldResume) {
+            [self play];
+        }
+    }
+}
+
 - (void)playerItemDidPlayToEndTime:(NSNotification *)notification {
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:AVAudioSessionInterruptionNotification object:nil];
     if (_delegateFlags.didFinishPlaybackOfURL) {
         NSURL *url = [self URLOfItem:notification.object];
         
@@ -483,6 +498,7 @@ static char playerItemTimedMetadataContext;
 }
 
 - (void)playerItemDidFailPlayToEndTime:(NSNotification *)notification {
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:AVAudioSessionInterruptionNotification object:nil];
     if (_delegateFlags.didFail) {
         NSURL *url = [self URLOfItem:notification.object];
         
