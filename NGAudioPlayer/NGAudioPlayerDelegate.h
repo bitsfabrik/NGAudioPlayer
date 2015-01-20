@@ -23,6 +23,6 @@
 - (void)audioPlayer:(NGAudioPlayer *)audioPlayer didChangeTime:(NSTimeInterval)currentTime;
 - (void)audioPlayer:(NGAudioPlayer *)audioPlayer didChangeTimedMetadata:(NSArray *)timedMetadata;
 
-- (void)audioPlayerDidChangePlaybackState:(NGAudioPlayerPlaybackState)playbackState;
+- (void)audioPlayer:(NGAudioPlayer *)audioPlayer didChangePlaybackState:(NGAudioPlayerPlaybackState)playbackState;
 
 @end
