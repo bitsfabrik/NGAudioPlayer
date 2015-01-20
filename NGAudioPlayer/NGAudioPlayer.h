@@ -106,3 +106,18 @@
 - (void)advanceToNextURL;
 
 @end
+
+///////////////////////////////////////////////////////////////////////////
+#pragma mark - Subclassing Hooks
+///////////////////////////////////////////////////////////////////////////
+
+@interface NGAudioPlayer (SubclassingHooks)
+
+- (void)handleRateChange:(NSDictionary *)change;
+- (void)handlePlaybackBufferChange:(NSDictionary *)change;
+- (void)handleStatusChange:(NSDictionary *)change;
+- (void)handleCurrentItemChange:(NSDictionary *)change;
+- (void)playerItemDidPlayToEndTime:(NSNotification *)notification;
+- (void)handlePlayerItemTimedMetadataChange:(NSDictionary *)change object:(id)object;
+
+@end

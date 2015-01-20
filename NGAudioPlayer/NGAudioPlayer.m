@@ -14,7 +14,7 @@
 #define kNGAudioPlayerKeypathCurrentItem    NSStringFromSelector(@selector(currentItem))
 #define kNGAudioPlayerKeypathCurrentItemStatus   NSStringFromSelector(@selector(status))
 #define kNGAudioPlayerItemKeypathTimedMetadata   NSStringFromSelector(@selector(timedMetadata))
-#define kNGAudioPlayerItemPlaybackLikelyToKeepUp NSStringFromSelector(@selector(playbackLikelyToKeepUp))
+#define kNGAudioPlayerItemPlaybackLikelyToKeepUp NSStringFromSelector(@selector(isPlaybackLikelyToKeepUp))
 
 static char rateContext;
 static char statusContext;
@@ -50,6 +50,7 @@ static char playerItemPlaybackLikelyToKeepUp;
 - (void)handleStatusChange:(NSDictionary *)change;
 - (void)handleCurrentItemChange:(NSDictionary *)change;
 - (void)playerItemDidPlayToEndTime:(NSNotification *)notification;
+- (void)handlePlayerItemTimedMetadataChange:(NSDictionary *)change object:(id)object;
 
 @end
 
@@ -79,7 +80,7 @@ static char playerItemPlaybackLikelyToKeepUp;
         if (urls.count > 0) {
             [self enqueueURLs:urls];
         }
-		
+        
         _automaticallyUpdateNowPlayingInfoCenter = YES;
     }
     
