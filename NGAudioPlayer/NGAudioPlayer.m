@@ -144,7 +144,7 @@ static char playerItemPlaybackBufferFullContext;
             AVPlayerItemStatus status = currentItem.status;
             if (status == AVPlayerStatusFailed) {
                 return NGAudioPlayerPlaybackStateFailed;
-            } else if (status == AVPlayerStatusUnknown || (!currentItem.playbackLikelyToKeepUp && !currentItem.playbackBufferFull)) {
+            } else if (status == AVPlayerStatusUnknown || (!currentItem.playbackLikelyToKeepUp && !currentItem.playbackBufferFull && CMTimeCompare(self.currentItem.currentTime, kCMTimeZero) != 0)) {
                 return NGAudioPlayerPlaybackStateBuffering;
             } else {
                 return NGAudioPlayerPlaybackStatePlaying;
