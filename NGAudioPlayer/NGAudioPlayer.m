@@ -17,6 +17,8 @@
 #define kNGAudioPlayerItemPlaybackLikelyToKeepUp NSStringFromSelector(@selector(playbackLikelyToKeepUp))
 #define kNGAudioPlayerItemPlaybackBufferFull     NSStringFromSelector(@selector(playbackBufferFull))
 
+#define kNGAudioPlayerNumberOfRetries       1
+
 static char rateContext;
 static char statusContext;
 static char currentItemContext;
@@ -42,6 +44,7 @@ static char playerItemPlaybackBufferFullContext;
 @property (nonatomic, readonly) CMTime CMDurationOfCurrentItem;
 @property (nonatomic, readwrite) id defaultTimeObserver;
 @property (nonatomic, readwrite) id timeObserver;
+@property (nonatomic, assign) NSUInteger retryCount;
 
 - (NSURL *)URLOfItem:(AVPlayerItem *)item;
 - (CMTime)CMDurationOfItem:(AVPlayerItem *)item;
@@ -82,8 +85,9 @@ static char playerItemPlaybackBufferFullContext;
         if (urls.count > 0) {
             [self enqueueURLs:urls];
         }
-        
+		
         _automaticallyUpdateNowPlayingInfoCenter = YES;
+        _retryEnabled = YES;
     }
     
     return self;
@@ -466,7 +470,7 @@ static char playerItemPlaybackBufferFullContext;
         
         NSURL *url = [self URLOfItem:newItem];
         NSDictionary *nowPlayingInfo = url.ng_nowPlayingInfo;
-        
+        self.retryCount = 0;
         if (url != nil && self.playing && _delegateFlags.didStartPlaybackOfURL) {
             [self.delegate audioPlayer:self didStartPlaybackOfURL:url];
         }
@@ -518,12 +522,17 @@ static char playerItemPlaybackBufferFullContext;
 }
 
 - (void)playerItemDidFailPlayToEndTime:(NSNotification *)notification {
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:AVAudioSessionInterruptionNotification object:nil];
-    if (_delegateFlags.didFail) {
-        NSURL *url = [self URLOfItem:notification.object];
-        
-        if (url != nil) {
-            [self.delegate audioPlayer:self didFailForURL:url];
+    if (self.shouldRetry && self.retryCount < kNGAudioPlayerNumberOfRetries) {
+        self.retryCount++;
+        [self playURL:self.currentPlayingURL];
+    } else {
+        [[NSNotificationCenter defaultCenter] removeObserver:self name:AVAudioSessionInterruptionNotification object:nil];
+        if (_delegateFlags.didFail) {
+            NSURL *url = [self URLOfItem:notification.object];
+            
+            if (url != nil) {
+                [self.delegate audioPlayer:self didFailForURL:url];
+            }
         }
     }
 }

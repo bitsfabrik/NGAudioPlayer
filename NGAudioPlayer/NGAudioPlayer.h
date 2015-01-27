@@ -34,6 +34,9 @@
 /** if YES, starts an observation block and calls delegates didChangeTime method */
 @property (nonatomic, readwrite) BOOL useDidChangeTimeObservation;
 
+/** if YES, player will try to play the currentItem again when it failed to play to end, defaults to YES */
+@property (nonatomic, assign, getter=shouldRetry) BOOL retryEnabled;
+
 /******************************************
  @name Class Methods
  ******************************************/
