@@ -15,7 +15,7 @@
 
 @interface NGAudioPlayer : NSObject
 
-@property (nonatomic, assign) id<NGAudioPlayerDelegate> delegate;
+@property (nonatomic, weak) id<NGAudioPlayerDelegate> delegate;
 @property (nonatomic, readonly, getter = isPlaying) BOOL playing;
 @property (nonatomic, readonly) NGAudioPlayerPlaybackState playbackState;
 
